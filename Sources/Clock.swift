@@ -56,6 +56,20 @@ public struct Clock {
             }
         }
     }
+    
+    public static func resync(from pool: String = "time.apple.com", samples: Int = 4,
+                            completion: ((Date?, TimeInterval?) -> Void)? = nil)
+    {
+        NTPClient().query(pool: pool, numberOfSamples: samples) { offset, done, total in
+            if let offset = offset, done == total {
+                self.stableTime = TimeFreeze(offset: offset)
+            }
+            
+            if done == total {
+                completion?(self.now, offset)
+            }
+        }
+    }
 
     /// Resets all state of the monotonic clock. Note that you won't be able to access `now` until you `sync`
     /// again.
